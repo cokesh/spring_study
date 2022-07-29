@@ -186,6 +186,7 @@ back/.settings
 
 ### Maven ###
 *pom.xml
+*configuration
 target/
 pom.xml.tag
 pom.xml.releaseBackup
