@@ -185,6 +185,7 @@ back/.classpath
 back/.settings
 
 ### Maven ###
+*pom.xml
 target/
 pom.xml.tag
 pom.xml.releaseBackup
