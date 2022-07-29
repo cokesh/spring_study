@@ -1,0 +1,47 @@
+* {
+    box-sizing: border-box;
+}
+
+h2 {
+    text-align: center;
+}
+
+div.boardlist {
+    display:table;
+    width: 80%;
+    background-color: #F4EEFF;
+    margin: 60px auto;
+}
+
+div.boardlist>div.board {
+    display:table-row;
+    width: 100%;
+    background-color: #DCD6F7;
+}
+
+div.boardlist>div.board>* {
+    display: table-cell;
+    width: 15%;
+    border-bottom: none;
+    border-left: none;
+    text-align: center;
+    padding: 8px;
+}
+
+div.boardlist>div.board>*:last-child {
+    border-right: none;
+}
+
+div.pagegroup{
+    text-align:center;
+}
+
+div.pagegroup>span {
+    border: 1px solid;
+    padding: 3px;
+}
+
+div.pagegroup>span:hover {
+    background-color: #DCD6F7;
+    font-weight: bold;
+}

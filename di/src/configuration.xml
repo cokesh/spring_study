@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	<bean name="p" class="com.my.dto.Product">
+		<property name="prodNo" value="C0001"/>
+		<property name = "prodName" value="아메리카노"/>
+		<property name = "prodPrice" value="2000"/>
+	</bean>
+
+	<bean name="customerService" class="com.my.service.CustomerService">
+		<constructor-arg ref="customerRepository"/>
+	</bean>
+	<!-- <bean name="customerRepository" class="com.my.repository.CustomerMySQLRepository"/> -->
+	<bean name="customerRepository" class="com.my.repository.CustomerOracleRepository"/>
+	<!-- <property name="repository" ref="customerRepository"></property> -->
+	<bean name="productRepository" class="com.my.repository.ProductOracleRepository">
+		<constructor-arg ref="dataSource"></constructor-arg>
+	</bean>
+	<bean name="productService" class="com.my.service.ProductService">
+		<!-- <constructor-arg ref="productRepository"></constructor-arg> -->
+		<property name="repository" ref="productRepository"></property>
+	</bean>
+	<bean name="dataSource" class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
+		<property name="driverClass" value="oracle.jdbc.driver.OracleDriver"></property>
+		<property name="url" value="jdbc:oracle:thin:@10.211.55.3:1521:xe"></property>
+		<property name="username" value="hr"></property>
+		<property name="password" value="hr"></property>
+	</bean>
+	
+</beans>
