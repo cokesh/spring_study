@@ -106,6 +106,7 @@ public class BoardOracleRepository implements BoardRepository {
 			}
 		} catch(Exception e) {
 			e.printStackTrace();
+			
 		} finally {
 			if(session != null) {
 				session.close();

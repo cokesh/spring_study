@@ -7,8 +7,10 @@ import org.springframework.stereotype.Service;
 
 import com.my.dto.Board;
 import com.my.dto.PageBean;
+import com.my.exception.AddException;
 import com.my.exception.FindException;
 import com.my.exception.ModifyException;
+import com.my.exception.RemoveException;
 import com.my.repository.BoardRepository;
 
 @Service
@@ -100,6 +102,47 @@ public class BoardService {
 			e.printStackTrace();
 			throw new FindException(e.getMessage());
 		}
+		
+	}
+	
+	/**
+	 * 글쓰기
+	 * @param board
+	 * @throws AddException
+	 */
+	public void writeBoard(Board board) throws AddException {
+		board.setBoardParentNo(0);
+		repository.insert(board);
+	}
+	
+	/**
+	 * 답글쓰기
+	 * @param board
+	 * @throws AddException
+	 */
+	public void replyBoard(Board board) throws AddException{
+		if(board.getBoardParentNo() == 0) {
+			throw new AddException("답글쓰기의 부모글번호가 없습니다");
+		}
+		repository.insert(board);
+	}
+
+	/**
+	 * 게시글 지우기
+	 * @param boardNo
+	 * @throws FindException
+	 */
+	public void deleteBoard(int boardNo) throws FindException {
+		try {
+			repository.delete(boardNo);
+		} catch (RemoveException e) {
+			e.printStackTrace();
+			throw new FindException();
+		}
+	}
+	
+	public void updateBoard(Board board) throws ModifyException {
+		repository.update(board);
 		
 	}
 }

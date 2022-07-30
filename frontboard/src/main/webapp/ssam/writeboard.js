@@ -24,7 +24,7 @@ $(function () {
 			console.log(key + ":" + value);
 		});
 		
-		let obj2 = formData.get("greeting");
+		let obj2 = formData.get("imageFile");
 		console.log(obj2);
 		$.ajax({
 			url: '/backboard/writeboard',

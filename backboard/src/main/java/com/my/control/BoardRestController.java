@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.servlet.ServletContext;
@@ -20,10 +21,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.my.dto.Board;
@@ -31,12 +37,14 @@ import com.my.dto.PageBean;
 import com.my.dto.ResultBean;
 import com.my.exception.AddException;
 import com.my.exception.FindException;
+import com.my.exception.ModifyException;
 import com.my.service.BoardService;
 
 import net.coobird.thumbnailator.Thumbnailator;
 
-@Controller
-public class BoardController {
+@RestController
+@RequestMapping("board/*")
+public class BoardRestController {
 	private Logger logger = Logger.getLogger(getClass());
 	@Autowired
 	private BoardService service;
@@ -44,11 +52,20 @@ public class BoardController {
 	@Autowired
 	private ServletContext sc;
 
-	@GetMapping("boardlist")
-	@ResponseBody
-	public ResultBean<PageBean<Board>> list(@RequestParam(required = false, defaultValue = "0") int currentPage) { // default값이 문자열 0으로 설정하여 int로 자동형변환 되게끔한다.
+	@GetMapping(value= {"list", "list/{optCp}"}) //두개의값 모두 전달 OK
+	public ResultBean<PageBean<Board>> list(@PathVariable Optional<Integer> optCp) { // default값이 문자열 0으로 설정하여 int로 자동형변환 되게끔한다.
+		
+//		currentPage.ifPresent(null); // 값이 있다면 ~~ 해라
+		
 		ResultBean<PageBean<Board>> rb = new ResultBean<>();
 		try {
+			int currentPage;
+			// 값이 있는지 없는지의 여부를 반환함(return Boolean)
+			if(optCp.isPresent() ) {
+				currentPage = optCp.get(); // Integer타입의 값을 int타입으로 오토박싱이 됨
+			} else {
+				currentPage = 1; // 값이 들어오지 않았다면 1페이지를 보여줌
+			}
 			PageBean<Board> pb = service.boardList(currentPage);
 			rb.setStatus(1);
 			rb.setT(pb);
@@ -60,13 +77,26 @@ public class BoardController {
 		return rb;
 	}
 
-	@GetMapping("search")
-	@ResponseBody
-	public ResultBean<PageBean<Board>> search(@RequestParam(required = false, defaultValue = "0") int currentPage, @RequestParam(required = false, defaultValue = "")String word) {
+	@GetMapping(value={"search", "search/{optWord}", "search/{optWord}/{optCp}"})
+	public ResultBean<PageBean<Board>> search(@PathVariable Optional<Integer> optCp, @PathVariable(required=false) Optional<String> optWord) {
 
 		ResultBean<PageBean<Board>> rb = new ResultBean<>();
 		try {
 			PageBean<Board> pb;
+			String word;
+			int currentPage = 1;
+			if(optWord.isPresent()) {
+				word = optWord.get();
+			} else {
+				word="";
+				
+			}
+			if(optCp.isPresent()) {
+				currentPage = optCp.get();
+			} else {
+				currentPage = 1;
+			}
+			
 			if("".equals(word)) {
 				pb = service.boardList(currentPage); // 문자열이 들어오지 않을경우 모든 값을 반환하게
 			}else {
@@ -81,10 +111,39 @@ public class BoardController {
 		}
 		return rb;
 	}
+	
+	@GetMapping("delete/{boardNo}")
+	public ResultBean<Board> deleteBoard(@PathVariable int boardNo) {
+		ResultBean<Board> rb = new ResultBean<>();
+		try {
+			service.deleteBoard(boardNo);
+			rb.setStatus(1);
+			rb.setMsg("게시글이 삭제되었습니다.");
+		} catch (FindException e) {
+			e.printStackTrace();
+			rb.setStatus(0);
+			rb.setMsg(e.getMessage());
+		}
+		return rb;
+	}
 
-	@GetMapping("viewboard")
-	@ResponseBody
-	public ResultBean<Board> viewBoard(int boardNo) {
+	@PutMapping("update/{boardNo}")
+	public ResultBean<Board> updateBoard(@RequestBody Board board, @PathVariable int boardNo) {
+		ResultBean<Board> rb = new ResultBean<>();
+		try {
+			service.updateBoard(board);
+			rb.setStatus(1);
+			rb.setMsg("업데이트 되었습니다.");
+		} catch (ModifyException e) {
+			rb.setStatus(0);
+			rb.setMsg("업데이트 실패");
+			e.printStackTrace();
+		}
+		return rb;
+	}
+	
+	@GetMapping("view/{boardNo}")
+	public ResultBean<Board> viewBoard(@PathVariable int boardNo) {
 		ResultBean<Board> rb = new ResultBean<>();
 		try {
 			Board b = service.viewBoard(boardNo);
@@ -99,7 +158,6 @@ public class BoardController {
 	}
 
 	@PostMapping("/writeboard")
-	@ResponseBody
 	public ResponseEntity<?> write( // json문자열 형태로 응답하지 않고 성공할시에 
 			@RequestPart(required = false) List<MultipartFile> letterFiles
 			,@RequestPart(required = false) MultipartFile imageFile
